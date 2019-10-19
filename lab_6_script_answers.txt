@@ -1,0 +1,296 @@
+yifei@yifei-VirtualBox:~$  sudo -u postgres psql
+[sudo] password for yifei: 
+psql (10.10 (Ubuntu 10.10-0ubuntu0.18.04.1))
+Type "help" for help.
+
+postgres=#  create database football_db;
+ERROR:  database "football_db" already exists
+postgres=#  create database football_information;
+ERROR:  database "football_information" already exists
+postgres=#  \c football_information;
+You are now connected to database "football_information" as user "postgres".
+football_information=# CREATE TABLE IF NOT EXISTS football_games (
+football_information(#   visitor_name VARCHAR(30),       /* Name of the visiting team                     */
+football_information(#   home_score SMALLINT NOT NULL,   /* Final score of the game for the Buffs         */
+football_information(#   visitor_score SMALLINT NOT NULL,/* Final score of the game for the visiting team */
+football_information(#   game_date DATE NOT NULL,        /* Date of the game                              */
+football_information(#   players INT[] NOT NULL,         /* This array consists of the football player ids (basically a foreign key to the football_player.id) */
+football_information(#   PRIMARY KEY(visitor_name, game_date) /* A game's unique primary key consists of the visitor_name & the game date (this assumes you can't have multiple games against the same team in a single day) */
+football_information(# );
+CREATE TABLE
+football_information=# 
+football_information=# CREATE TABLE IF NOT EXISTS football_players(
+football_information(#   id SERIAL PRIMARY KEY,       /* Unique identifier for each player (it's possible multiple players have the same name/similiar information) */
+football_information(#   name VARCHAR(50) NOT NULL,   /* The player's first & last name */
+football_information(#   year VARCHAR(3),             /* FSH - Freshman, SPH - Sophomore, JNR - Junior, SNR - Senior */
+football_information(#   major VARCHAR(4),            /* The unique 4 character code used by CU Boulder to identify student majors (ex. CSCI, ATLS) */
+football_information(#   passing_yards SMALLINT,      /* The number of passing yards in the players entire football career  */
+football_information(#   rushing_yards SMALLINT,      /* The number of rushing yards in the players entire football career  */
+football_information(#   receiving_yards SMALLINT,    /* The number of receiving yards in the players entire football career*/
+football_information(#   img_src VARCHAR(200)         /* This is a file path (absolute or relative), that locates the player's profile image */
+football_information(# );
+CREATE TABLE
+football_information=# 
+football_information=# INSERT INTO football_games(visitor_name, home_score, visitor_score, game_date, players)
+football_information-# VALUES('Colorado State', 45, 13, '20180831', ARRAY [1,2,3,4,5]),
+football_information-# ('Nebraska', 33, 28, '20180908', ARRAY [2,3,4,5,6]),
+football_information-# ('New Hampshire', 45, 14, '20180915', ARRAY [3,4,5,6,7]),
+football_information-# ('UCLA', 38, 16, '20180928', ARRAY [4,5,6,7,8]),
+football_information-# ('Arizona State', 28, 21, '20181006', ARRAY [5,6,7,8,9]),
+football_information-# ('Southern California', 20, 31, '20181013', ARRAY [6,7,8,9,10]),
+football_information-# ('Washington', 13, 27, '20181020', ARRAY [7,8,9,10,1]),
+football_information-# ('Oregon State', 34, 41, '20181027', ARRAY [8,9,10,1,2]),
+football_information-# ('Arizona', 34, 42, '20181102', ARRAY [9,10,1,2,3]),
+football_information-# ('Washington State', 7, 31, '20181110', ARRAY [10,1,2,3,4]),
+football_information-# ('Utah', 7, 30, '20181117', ARRAY [1,2,3,4,5]),
+football_information-# ('California', 21, 33, '20181124', ARRAY [2,3,4,5,6])
+football_information-# ;
+INSERT 0 12
+football_information=# 
+football_information=# INSERT INTO football_players(name, year, major, passing_yards, rushing_yards, receiving_yards)
+football_information-# VALUES('Cedric Vega', 'FSH', 'ARTS', 15, 25, 33),
+football_information-# ('Myron Walters', 'SPH', 'CSCI', 32, 43, 52),
+football_information-# ('Javier Washington', 'JNR', 'MATH', 1, 61, 45),
+football_information-# ('Wade Farmer', 'SNR', 'ARTS', 14, 55, 12),
+football_information-# ('Doyle Huff', 'FSH', 'CSCI', 23, 44, 92),
+football_information-# ('Melba Pope', 'SPH', 'MATH', 13, 22, 45),
+football_information-# ('Erick Graves', 'JNR', 'ARTS', 45, 78, 98 ),
+football_information-# ('Charles Porter', 'SNR', 'CSCI', 92, 102, 125),
+football_information-# ('Rafael Boreous', 'JNR', 'MATH', 102, 111, 105),
+football_information-# ('Jared Castillo', 'SNR', 'ARTS', 112, 113, 114);
+INSERT 0 10
+football_information=# SELECT name , major FROM football_players ORDER BY major ;
+       name        | major 
+-------------------+-------
+ Cedric Vega       | ARTS
+ Wade Farmer       | ARTS
+ Erick Graves      | ARTS
+ Jared Castillo    | ARTS
+ Doyle Huff        | CSCI
+ Myron Walters     | CSCI
+ Charles Porter    | CSCI
+ Melba Pope        | MATH
+ Rafael Boreous    | MATH
+ Javier Washington | MATH
+(10 rows)
+
+football_information=# SELECT name , rushing_yards FROM football_players WHERE rushing_yards >= "70" ;
+ERROR:  column "70" does not exist
+LINE 1: ...ng_yards FROM football_players WHERE rushing_yards >= "70" ;
+                                                                 ^
+football_information=# SELECT name , rushing_yards FROM football_players WHERE rushing_yards >='70';
+      name      | rushing_yards 
+----------------+---------------
+ Erick Graves   |            78
+ Charles Porter |           102
+ Rafael Boreous |           111
+ Jared Castillo |           113
+(4 rows)
+
+football_information=# select * from football_games where visitor_name = 'Nebraska';
+ visitor_name | home_score | visitor_score | game_date  |   players   
+--------------+------------+---------------+------------+-------------
+ Nebraska     |         33 |            28 | 2018-09-08 | {2,3,4,5,6}
+(1 row)
+
+football_information=# SELECT visitor_name, home_score, visitor_score, game_date, players FROM football_games where home_score > visitor_score; 
+  visitor_name  | home_score | visitor_score | game_date  |   players   
+----------------+------------+---------------+------------+-------------
+ Colorado State |         45 |            13 | 2018-08-31 | {1,2,3,4,5}
+ Nebraska       |         33 |            28 | 2018-09-08 | {2,3,4,5,6}
+ New Hampshire  |         45 |            14 | 2018-09-15 | {3,4,5,6,7}
+ UCLA           |         38 |            16 | 2018-09-28 | {4,5,6,7,8}
+ Arizona State  |         28 |            21 | 2018-10-06 | {5,6,7,8,9}
+(5 rows)
+
+football_information=# Select visitor_name, game_date from football_games;
+    visitor_name     | game_date  
+---------------------+------------
+ Colorado State      | 2018-08-31
+ Nebraska            | 2018-09-08
+ New Hampshire       | 2018-09-15
+ UCLA                | 2018-09-28
+ Arizona State       | 2018-10-06
+ Southern California | 2018-10-13
+ Washington          | 2018-10-20
+ Oregon State        | 2018-10-27
+ Arizona             | 2018-11-02
+ Washington State    | 2018-11-10
+ Utah                | 2018-11-17
+ California          | 2018-11-24
+(12 rows)
+
+football_information=# select avg(home_score)
+football_information-# FROM football_games;
+         avg         
+---------------------
+ 27.0833333333333333
+(1 row)
+
+football_information=# 
+football_information=# SELECT MAJOR, count(major) as number_of_players From football_players group by major;
+ major | number_of_players 
+-------+-------------------
+ CSCI  |                 3
+ ARTS  |                 4
+ MATH  |                 3
+(3 rows)
+
+football_information=# SELECT major, count(major) as number_of_players From football_players where major = 'CSCI' group by major; 
+ major | number_of_players 
+-------+-------------------
+ CSCI  |                 3
+(1 row)
+
+football_information=# Create view home_score as select visitor_name, sum(home_score) AS "Total Cost" FROM football_games where home_score > visitor_score; 
+ERROR:  column "football_games.visitor_name" must appear in the GROUP BY clause or be used in an aggregate function
+LINE 1: Create view home_score as select visitor_name, sum(home_scor...
+                                         ^
+football_information=# ^C
+football_information=# Create view win_game as 
+football_information-# SELECT sum(home_score) as “Total win” FROM football_games where home_score > visitor_score; 
+ERROR:  syntax error at or near "win”"
+LINE 2: SELECT sum(home_score) as “Total win” FROM football_games wh...
+                                         ^
+football_information=# Create view win_game as 
+football_information-# SELECT sum(home_score) as “Total1” FROM football_games where home_score > visitor_score; 
+CREATE VIEW
+football_information=# Create view total_game as 
+football_information-# SELECT sum(home_score) as “Total2” FROM football_games; 
+CREATE VIEW
+football_information=# select column("Total1" / ("Total2"))
+football_information-# From football_games;
+ERROR:  syntax error at or near "column"
+LINE 1: select column("Total1" / ("Total2"))
+               ^
+football_information=# seleect count("Total1"/ "Total2")
+football_information-#  From football_games;
+ERROR:  syntax error at or near "seleect"
+LINE 1: seleect count("Total1"/ "Total2")
+        ^
+football_information=# ^C
+football_information=# Select sum(home_score) as “Total1” FROM football_games where home_score > visitor_score / (SELECT sum(home_score) as “Total2” FROM football_games = “column”);
+ERROR:  syntax error at or near "="
+LINE 1: ...T sum(home_score) as “Total2” FROM football_games = “column”...
+                                                             ^
+football_information=# Select sum(home_score) as “Total1” FROM football_games where home_score > visitor_score / (SELECT sum(home_score) as “Total2” FROM football_games = ‘column’);
+ERROR:  syntax error at or near "="
+LINE 1: ...T sum(home_score) as “Total2” FROM football_games = ‘column’...
+                                                             ^
+football_information=# select * From football_games;
+    visitor_name     | home_score | visitor_score | game_date  |   players    
+---------------------+------------+---------------+------------+--------------
+ Colorado State      |         45 |            13 | 2018-08-31 | {1,2,3,4,5}
+ Nebraska            |         33 |            28 | 2018-09-08 | {2,3,4,5,6}
+ New Hampshire       |         45 |            14 | 2018-09-15 | {3,4,5,6,7}
+ UCLA                |         38 |            16 | 2018-09-28 | {4,5,6,7,8}
+ Arizona State       |         28 |            21 | 2018-10-06 | {5,6,7,8,9}
+ Southern California |         20 |            31 | 2018-10-13 | {6,7,8,9,10}
+ Washington          |         13 |            27 | 2018-10-20 | {7,8,9,10,1}
+ Oregon State        |         34 |            41 | 2018-10-27 | {8,9,10,1,2}
+ Arizona             |         34 |            42 | 2018-11-02 | {9,10,1,2,3}
+ Washington State    |          7 |            31 | 2018-11-10 | {10,1,2,3,4}
+ Utah                |          7 |            30 | 2018-11-17 | {1,2,3,4,5}
+ California          |         21 |            33 | 2018-11-24 | {2,3,4,5,6}
+(12 rows)
+
+football_information=# select sum(home_score) as "Total1"/ (sum(home_score) as "total2" = ?column?);
+ERROR:  syntax error at or near "/"
+LINE 1: select sum(home_score) as "Total1"/ (sum(home_score) as "tot...
+                                          ^
+football_information=# Select win_game.Total1 / total_game.Total2 As result
+football_information-# From football_games where home_score > visitor_score, from football_games;
+ERROR:  syntax error at or near ","
+LINE 2: ...om football_games where home_score > visitor_score, from foo...
+                                                             ^
+football_information=# Select win_game.Total1 / total_game.Total2 As result
+football_information-# From football_games where home_score > visitor_score, football_games;
+ERROR:  syntax error at or near ","
+LINE 2: ...om football_games where home_score > visitor_score, football...
+                                                             ^
+football_information=# Select win_game.Total1 / total_game.Total2 As result
+football_information-# From football_games where home_score > visitor_score win_game, football_games total_game;
+ERROR:  syntax error at or near "win_game"
+LINE 2: ...m football_games where home_score > visitor_score win_game, ...
+                                                             ^
+football_information=# SELECT w.Total1 / a.Total2 AS result
+football_information-# From football_games where home_score > visitor_score w, football_games a;
+ERROR:  syntax error at or near "w"
+LINE 2: ...m football_games where home_score > visitor_score w, footbal...
+                                                             ^
+football_information=# Select count(win_game/total_game) from football_game;
+ERROR:  relation "football_game" does not exist
+LINE 1: Select count(win_game/total_game) from football_game;
+                                               ^
+football_information=# SELECT w.Total1 / a.Total2 AS result
+football_information-# From football_games where home_score > visitor_score, football_games;
+ERROR:  syntax error at or near ","
+LINE 2: ...om football_games where home_score > visitor_score, football...
+                                                             ^
+football_information=# SELECT （sum(home_score) as “Total1” FROM football_games where home_score > visitor_score）/ （SELECT sum(home_score) as “Total2” FROM football_games）; 
+ERROR:  syntax error at or near "sum"
+LINE 1: ...ames where home_score > visitor_score）/ （SELECT sum(home_s...
+                                                             ^
+football_information=# Select (win_game.Total1) / (total_game.Total2) As result
+football_information-# From( football_games where home_score > visitor_score win_game), (football_games total_game);
+ERROR:  syntax error at or near "where"
+LINE 2: From( football_games where home_score > visitor_score win_ga...
+                             ^
+football_information=# Select (win_game.Total1) / (total_game.Total2) As result
+football_information-# From(win_game), (total_game);
+ERROR:  syntax error at or near ")"
+LINE 2: From(win_game), (total_game);
+                     ^
+football_information=# Select (win_game.Total1) / (total_game.Total2) As result
+football_information-# From win_game, total_game;
+ERROR:  column win_game.total1 does not exist
+LINE 1: Select (win_game.Total1) / (total_game.Total2) As result
+                ^
+HINT:  Perhaps you meant to reference the column "win_game.“total1”".
+football_information=# Select “win_game”.”Total1” / “total_game”.”Total2” As result
+football_information-# From “win_game”, “total_game”;
+ERROR:  relation "“win_game”" does not exist
+LINE 2: From “win_game”, “total_game”;
+             ^
+football_information=# Select “win_game”.”Total1” / “total_game”.”Total2” As result
+football_information-# From football_games where home_score > visitor_score, football_games;
+ERROR:  syntax error at or near ","
+LINE 2: ...om football_games where home_score > visitor_score, football...
+                                                             ^
+football_information=# Select “win_game”.”Total1” / “total_game”.”Total2” As result
+football_information-# From football_games where home_score > visitor_score football_games;
+ERROR:  syntax error at or near "football_games"
+LINE 2: ...m football_games where home_score > visitor_score football_g...
+                                                             ^
+football_information=# Select “win_game”.”Total1” / “total_game”.”Total2” As result
+football_information-# From “football_games where home_score > visitor_score” “football_games”;
+ERROR:  syntax error at or near "“football_games”"
+LINE 2: ...“football_games where home_score > visitor_score” “football_...
+                                                             ^
+football_information=# Select “win_game”.”Total1” / “total_game”.”Total2” As result
+football_information-# From “football_games where home_score > visitor_score”, “football_games”;
+ERROR:  syntax error at or near ","
+LINE 2: ... “football_games where home_score > visitor_score”, “footbal...
+                                                             ^
+football_information=# Select “win_game”.”Total1” / “total_game”.”Total2” As result
+football_information-# From football_games where home_score > visitor_score;
+ERROR:  missing FROM-clause entry for table "“win_game”"
+LINE 1: Select “win_game”.”Total1” / “total_game”.”Total2” As result
+               ^
+football_information=# SELECT count(*) FROM football_games WHERE (select id from football_players where name = 'Cedric Vega')= ANY(players)
+football_information-# ;
+ count 
+-------
+     6
+(1 row)
+
+football_information=# select ((fp.rushing_yards / count(*) :: float )) as Average
+football_information-# from football_games fg, football_players fp
+football_information-# where fp.id = ANY(players) and fp.name = 'Cedric Vega' group by fp.rushing_yards;
+     average      
+------------------
+ 4.16666666666667
+(1 row)
+
+football_information=# 
+
